@@ -245,7 +245,7 @@ class Pry
   # @target [Binding] target The target of the Pry session.
   def process_line(val, eval_string, target)
     val.rstrip!
-    Pry.cmd_ret_value = @command_processor.process_commands(val, eval_string, target)
+    Pry.cmd_ret_value = @command_processor.process_commands(val, eval_string, target, self)
 
     if Pry.cmd_ret_value
       eval_string << "Pry.cmd_ret_value\n"

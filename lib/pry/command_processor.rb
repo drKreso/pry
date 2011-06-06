@@ -62,7 +62,7 @@ class Pry
     # @param [String] eval_string The cumulative lines of input for
     #   multi-line input.
     # @param [Binding] target The receiver of the commands.
-    def process_commands(val, eval_string, target)
+    def process_commands(val, eval_string, target, pry)
 
       # no command was matched, so return to caller
       return if !valid_command?(val)
@@ -79,11 +79,12 @@ class Pry
       args = arg_string ? Shellwords.shellwords(arg_string) : []
 
       options = {
-        :val => val,
-        :arg_string => arg_string,
+        :val         => val,
+        :arg_string  => arg_string,
         :eval_string => eval_string,
-        :commands => commands.commands,
-        :captures => captures
+        :commands    => commands.commands,
+        :captures    => captures,
+        :pry         => pry
       }
 
       execute_command(target, command.name, options, *(captures + args))
@@ -105,7 +106,9 @@ class Pry
       context.captures    = options[:captures]
       context.eval_string = options[:eval_string]
       context.arg_string  = options[:arg_string]
+      context.pry         = options[:pry]
       context.command_set = commands
+      
 
       context.command_processor = self
 
