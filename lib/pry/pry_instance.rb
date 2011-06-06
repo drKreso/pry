@@ -9,6 +9,9 @@ class Pry
   attr_accessor :exception_handler
   attr_accessor :hooks
   attr_accessor :custom_completions
+
+  # @return [Array<Binding>]
+  #   Returns an Array of Binding objects being used by a `Pry` instance.  
   attr_accessor :binding_stack
 
   # Returns the target binding for the session. Note that altering this
