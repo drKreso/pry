@@ -3,10 +3,11 @@ class Pry
 
     Shell = Pry::CommandSet.new do
 
-      command /\.(.*)/, "All text following a '.' is forwarded to the shell.", :listing => ".<shell command>" do |cmd|
+      command(/\.(.*)/, "All text following a '.' is forwarded to the shell.", :listing => ".<shell command>") do |cmd|
         if cmd =~ /^cd\s+(.+)/i
+          dest = $1
           begin
-            Dir.chdir File.expand_path($1)
+            Dir.chdir File.expand_path(dest)
           rescue Errno::ENOENT
             output.puts "No such directory: #{dest}"
           end
@@ -72,8 +73,6 @@ class Pry
         render_output(opts.flood?, opts.l? ? normalized_start_line + 1 : false, contents)
         contents
       end
-
-
     end
 
   end

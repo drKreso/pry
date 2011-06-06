@@ -4,6 +4,7 @@ unless Object.const_defined? 'Pry'
 end
 
 require 'bacon'
+require 'open4'
 
 # Ensure we do not execute any rc files
 Pry::RC_FILES.clear
@@ -18,7 +19,7 @@ class << Pry
     Pry.color = false
     Pry.pager = false
     Pry.config.should_load_rc = false
-    Pry.config.should_load_plugins = false
+    Pry.config.plugins.enabled = false
     Pry.config.history.load = false
     Pry.config.history.save = false
   end
