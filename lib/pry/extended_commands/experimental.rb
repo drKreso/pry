@@ -28,14 +28,14 @@ class Pry
 
             range = opt.l? ? opt[:l] : (0..-1)
 
-            Pry.active_instance.input = StringIO.new(code[range])
+            pry.input = StringIO.new(code[range])
           end
 
           opt.on :f, "file", 'The line (or range of lines) to replay.', true do |file_name|
             text = File.read File.expand_path(file_name)
             range = opt.l? ? opt[:l] : (0..-1)
 
-            Pry.active_instance.input = StringIO.new(text[range])
+            pry.input = StringIO.new(text[range])
           end
 
           opt.on :h, :help, "This message." do

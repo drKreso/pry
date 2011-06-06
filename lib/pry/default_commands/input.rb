@@ -90,7 +90,7 @@ class Pry
                  :as     => Range,
                  :unless => :grep do |range|
             actions = Array(history[range]).join("\n") + "\n"
-            Pry.active_instance.input = StringIO.new(actions)
+            pry.input = StringIO.new(actions)
           end
 
           opt.on :c, :clear, 'Clear the history', :unless => :grep do

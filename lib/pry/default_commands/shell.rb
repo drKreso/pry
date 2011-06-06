@@ -20,15 +20,15 @@ class Pry
       end
 
       command "shell-mode", "Toggle shell mode. Bring in pwd prompt and file completion." do
-        case Pry.active_instance.prompt
+        case pry.prompt
         when Pry::SHELL_PROMPT
-          Pry.active_instance.pop_prompt
-          Pry.active_instance.custom_completions = Pry::DEFAULT_CUSTOM_COMPLETIONS
+          pry.pop_prompt
+          pry.custom_completions = Pry::DEFAULT_CUSTOM_COMPLETIONS
         else
-          Pry.active_instance.push_prompt Pry::SHELL_PROMPT
-          Pry.active_instance.custom_completions = Pry::FILE_COMPLETIONS
+          pry.push_prompt Pry::SHELL_PROMPT
+          pry.custom_completions = Pry::FILE_COMPLETIONS
           Readline.completion_proc = Pry::InputCompleter.build_completion_proc target,
-          Pry.active_instance.instance_eval(&Pry::FILE_COMPLETIONS)
+          pry.instance_eval(&Pry::FILE_COMPLETIONS)
         end
       end
 
