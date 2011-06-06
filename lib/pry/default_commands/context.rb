@@ -69,7 +69,7 @@ class Pry
         meth_name = "N/A" if !meth_name
 
         if file =~ /(\(.*\))|<.*>/ || file == "" || file == "-e"
-          output.puts "Cannot find local context. Did you use `binding._pry_` ?"
+          output.puts "Cannot find local context. Did you use `binding.pry` ?"
           next
         end
 
