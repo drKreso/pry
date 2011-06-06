@@ -50,8 +50,8 @@ class Pry
       alias_command "quit-program", "exit-program", ""
       alias_command "!!!", "exit-program", ""
 
-      command "!_pry_", "Start a Pry session on current self; this even works mid-expression." do
-        target._pry_
+      command "!pry", "Start a Pry session on current self; this even works mid-expression." do
+        target.pry
       end
 
       command "whereami", "Show the code context for the session. (whereami <n> shows <n> extra lines of code around the invocation line. Default: 5)" do |num|
