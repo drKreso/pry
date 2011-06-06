@@ -16,12 +16,7 @@ class Pry
     def self.delegate_accessors(delagatee, *names)
       def_delegators delagatee, *names
       def_delegators delagatee, *names.map { |v| "#{v}=" }
-    end
-
-    # Get nesting data.
-    # This method should not need to be accessed directly.
-    # @return [Array] The unparsed nesting information.
-    attr_reader :nesting
+    end 
 
     # Get last value evaluated by Pry.
     # This method should not need to be accessed directly.
