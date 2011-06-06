@@ -10,11 +10,11 @@ class Pry
     attr_accessor :opts
     attr_accessor :command_set
     attr_accessor :command_processor
-    attr_accessor :pry
+    attr_accessor :_pry_
 
     def run(command_string, *args)
       complete_string = "#{command_string} #{args.join(" ")}"
-      command_processor.process_commands(complete_string, eval_string, target)
+      command_processor.process_commands(complete_string, eval_string, target, _pry_)
     end
 
     def commands
