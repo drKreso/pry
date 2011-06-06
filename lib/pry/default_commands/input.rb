@@ -76,7 +76,7 @@ class Pry
             stagger_output lines
           end
 
-          opt.on :e, :exclude, 'Exclude pry commands from the history.', :unless => :grep do
+          opt.on :e, :exclude, 'Exclude _pry_ commands from the history.', :unless => :grep do
             history.map!.with_index do |element, index|
               unless command_processor.valid_command? element
                 "#{text.blue index}: #{element}"
@@ -90,7 +90,7 @@ class Pry
                  :as     => Range,
                  :unless => :grep do |range|
             actions = Array(history[range]).join("\n") + "\n"
-            pry.input = StringIO.new(actions)
+            _pry_.input = StringIO.new(actions)
           end
 
           opt.on :c, :clear, 'Clear the history', :unless => :grep do

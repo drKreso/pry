@@ -8,11 +8,11 @@ class Pry
       end
 
       command "simple-prompt", "Toggle the simple prompt." do
-        case pry.prompt
+        case _pry_.prompt
         when Pry::SIMPLE_PROMPT
-          pry.pop_prompt
+          _pry_.pop_prompt
         else
-          pry.push_prompt Pry::SIMPLE_PROMPT
+          _pry_.push_prompt Pry::SIMPLE_PROMPT
         end
       end
 
@@ -24,7 +24,7 @@ class Pry
         next output.puts "Provide a command set name" if command_set.nil?
 
         set = target.eval(arg_string)
-        pry.commands.import set
+        _pry_.commands.import set
       end
 
       command "reset", "Reset the REPL to a clean state." do

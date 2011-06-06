@@ -106,7 +106,7 @@ class Pry
       context.captures    = options[:captures]
       context.eval_string = options[:eval_string]
       context.arg_string  = options[:arg_string]
-      context.pry         = options[:pry]
+      context._pry_       = options[:pry]
       context.command_set = commands
       
 

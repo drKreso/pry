@@ -10,19 +10,19 @@ class Pry
       :argument_required => true do |argument|
         case argument
         when ".."
-          pry.binding_stack.size == 1 ? output.puts('At root of stack.') : pry.binding_stack.pop
+          _pry_.binding_stack.size == 1 ? output.puts('At root of stack.') : _pry_.binding_stack.pop
         when "/"
-          pry.binding_stack.slice! 1..-1  
+          _pry_.binding_stack.slice! 1..-1  
         when "::"
-          pry.binding_stack = [ TOPLEVEL_BINDING ]
+          _pry_.binding_stack = [ TOPLEVEL_BINDING ]
         else
           obj = target.eval arg_string
-          pry.binding_stack.push Pry.binding_for(obj)
+          _pry_.binding_stack.push Pry.binding_for(obj)
         end
       end
 
       command "show-stack", "Show binding stack information." do
-        pry.binding_stack.each.with_index do |bind, index|
+        _pry_.binding_stack.each.with_index do |bind, index|
           output.puts "#{index+1}. #{Pry.view_clip(bind.eval("self"))}"
         end
       end
@@ -32,10 +32,10 @@ class Pry
               :argument_required => true do |index|
         
         index = index.to_i
-        if (1..pry.binding_stack.size).include? index 
-          pry.binding_stack.slice! index..-1
+        if (1.._pry_.binding_stack.size).include? index 
+          _pry_.binding_stack.slice! index..-1
         else
-          output.puts "Stack isn't that big! Choose between 1..#{pry.binding_stack.size}"
+          output.puts "Stack isn't that big! Choose between 1..#{_pry_.binding_stack.size}"
         end
       end
 
@@ -50,8 +50,8 @@ class Pry
       alias_command "quit-program", "exit-program", ""
       alias_command "!!!", "exit-program", ""
 
-      command "!pry", "Start a Pry session on current self; this even works mid-expression." do
-        target.pry
+      command "!_pry_", "Start a Pry session on current self; this even works mid-expression." do
+        target._pry_
       end
 
       command "whereami", "Show the code context for the session. (whereami <n> shows <n> extra lines of code around the invocation line. Default: 5)" do |num|
@@ -69,7 +69,7 @@ class Pry
         meth_name = "N/A" if !meth_name
 
         if file =~ /(\(.*\))|<.*>/ || file == "" || file == "-e"
-          output.puts "Cannot find local context. Did you use `binding.pry` ?"
+          output.puts "Cannot find local context. Did you use `binding._pry_` ?"
           next
         end
 
