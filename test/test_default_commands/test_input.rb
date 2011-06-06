@@ -5,7 +5,7 @@ describe "Pry::DefaultCommands::Input" do
   describe "amend-line-N" do
     it 'should correctly amend the last line of input when no line number specified ' do
       str_output = StringIO.new
-      redirect_pry_io(InputTester.new("def hello", "puts :bing", "amend-line puts :blah", "show-input", "exit-all"), str_output) do
+      redirect_pry_io(InputTester.new("def hello", "puts :bing", "amend-line puts :blah", "show-input", "exit"), str_output) do
         pry
       end
       str_output.string.should =~ /\A\d+: def hello\n\d+: puts :blah/
@@ -13,7 +13,7 @@ describe "Pry::DefaultCommands::Input" do
 
     it 'should correctly amend the specified line of input when line number given ' do
       str_output = StringIO.new
-      redirect_pry_io(InputTester.new("def hello", "puts :bing", "puts :bang", "amend-line-0 def goodbye", "show-input", "exit-all"), str_output) do
+      redirect_pry_io(InputTester.new("def hello", "puts :bing", "puts :bang", "amend-line-0 def goodbye", "show-input", "exit"), str_output) do
         pry
       end
       str_output.string.should =~ /\A\d+: def goodbye\n\d+: puts :bing\n\d+: puts :bang/
@@ -23,7 +23,7 @@ describe "Pry::DefaultCommands::Input" do
   describe "show-input" do
     it 'should correctly show the current lines in the input buffer' do
       str_output = StringIO.new
-      redirect_pry_io(InputTester.new("def hello", "puts :bing", "show-input", "exit-all"), str_output) do
+      redirect_pry_io(InputTester.new("def hello", "puts :bing", "show-input", "exit"), str_output) do
         pry
       end
       str_output.string.should =~ /\A\d+: def hello\n\d+: puts :bing/
@@ -33,7 +33,7 @@ describe "Pry::DefaultCommands::Input" do
   describe "!" do
     it 'should correctly clear the input buffer ' do
       str_output = StringIO.new
-      redirect_pry_io(InputTester.new("def hello", "puts :bing", "!", "show-input", "exit-all"), str_output) do
+      redirect_pry_io(InputTester.new("def hello", "puts :bing", "!", "show-input", "exit"), str_output) do
         pry
       end
       stripped_output = str_output.string.strip!
@@ -57,7 +57,7 @@ describe "Pry::DefaultCommands::Input" do
       @hist.push "hello"
       @hist.push "world"
       str_output = StringIO.new
-      redirect_pry_io(InputTester.new("hist", "exit-all"), str_output) do
+      redirect_pry_io(InputTester.new("hist", "exit"), str_output) do
         pry
       end
       str_output.string.should =~ /hello\n.*world/
@@ -69,7 +69,7 @@ describe "Pry::DefaultCommands::Input" do
       @hist.push ":bucket"
       @hist.push ":ostrich"
       str_output = StringIO.new
-      redirect_pry_io(InputTester.new("hist --replay 3", "exit-all"), str_output) do
+      redirect_pry_io(InputTester.new("hist --replay 3", "exit"), str_output) do
         pry
       end
       str_output.string.should =~ /ostrich/
@@ -80,7 +80,7 @@ describe "Pry::DefaultCommands::Input" do
       @hist.push ":hello"
       @hist.push ":carl"
       str_output = StringIO.new
-      redirect_pry_io(InputTester.new("hist --replay 0..2", "exit-all"), str_output) do
+      redirect_pry_io(InputTester.new("hist --replay 0..2", "exit"), str_output) do
         pry
       end
       str_output.string.should =~ /:hello\n.*:carl/
@@ -96,7 +96,7 @@ describe "Pry::DefaultCommands::Input" do
       @hist.push "grape"
 
       str_output = StringIO.new
-      redirect_pry_io(InputTester.new("hist --grep o", "exit-all"), str_output) do
+      redirect_pry_io(InputTester.new("hist --grep o", "exit"), str_output) do
         pry
       end
 
@@ -110,7 +110,7 @@ describe "Pry::DefaultCommands::Input" do
       end
 
       str_output = StringIO.new
-      redirect_pry_io(InputTester.new("hist --tail 3", "exit-all"), str_output) do
+      redirect_pry_io(InputTester.new("hist --tail 3", "exit"), str_output) do
         pry
       end
 
@@ -127,7 +127,7 @@ describe "Pry::DefaultCommands::Input" do
       end
 
       str_output = StringIO.new
-      redirect_pry_io(InputTester.new("hist --head 4", "exit-all"), str_output) do
+      redirect_pry_io(InputTester.new("hist --head 4", "exit"), str_output) do
         pry
       end
 
@@ -144,7 +144,7 @@ describe "Pry::DefaultCommands::Input" do
       end
 
       str_output = StringIO.new
-      redirect_pry_io(InputTester.new("hist --show 1..4", "exit-all"), str_output) do
+      redirect_pry_io(InputTester.new("hist --show 1..4", "exit"), str_output) do
         pry
       end
 

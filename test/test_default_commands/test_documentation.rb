@@ -4,7 +4,7 @@ describe "Pry::DefaultCommands::Documentation" do
   describe "show-doc" do
     it 'should output a method\'s documentation' do
       str_output = StringIO.new
-      redirect_pry_io(InputTester.new("show-doc sample_method", "exit-all"), str_output) do
+      redirect_pry_io(InputTester.new("show-doc sample_method", "exit"), str_output) do
         pry
       end
 
@@ -18,7 +18,7 @@ describe "Pry::DefaultCommands::Documentation" do
 
       # sample comment
       def o.sample
-        redirect_pry_io(InputTester.new("show-doc", "exit-all"), $str_output) do
+        redirect_pry_io(InputTester.new("show-doc", "exit"), $str_output) do
           binding.pry
        end
       end

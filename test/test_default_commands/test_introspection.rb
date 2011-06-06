@@ -4,7 +4,7 @@ describe "Pry::DefaultCommands::Introspection" do
   describe "show-method" do
     it 'should output a method\'s source' do
       str_output = StringIO.new
-      redirect_pry_io(InputTester.new("show-method sample_method", "exit-all"), str_output) do
+      redirect_pry_io(InputTester.new("show-method sample_method", "exit"), str_output) do
         pry
       end
 
@@ -13,7 +13,7 @@ describe "Pry::DefaultCommands::Introspection" do
 
     it 'should output a method\'s source with line numbers' do
       str_output = StringIO.new
-      redirect_pry_io(InputTester.new("show-method -l sample_method", "exit-all"), str_output) do
+      redirect_pry_io(InputTester.new("show-method -l sample_method", "exit"), str_output) do
         pry
       end
 
@@ -25,7 +25,7 @@ describe "Pry::DefaultCommands::Introspection" do
 
       o = Object.new
       def o.sample
-        redirect_pry_io(InputTester.new("show-method", "exit-all"), $str_output) do
+        redirect_pry_io(InputTester.new("show-method", "exit"), $str_output) do
           binding.pry
         end
       end
@@ -40,7 +40,7 @@ describe "Pry::DefaultCommands::Introspection" do
 
       o = Object.new
       def o.sample
-        redirect_pry_io(InputTester.new("show-method -l", "exit-all"), $str_output) do
+        redirect_pry_io(InputTester.new("show-method -l", "exit"), $str_output) do
           binding.pry
         end
       end
@@ -55,7 +55,7 @@ describe "Pry::DefaultCommands::Introspection" do
     if RUBY_VERSION =~ /1.9/
       it 'should output a method\'s source for a method defined inside pry' do
         str_output = StringIO.new
-        redirect_pry_io(InputTester.new("def dyna_method", ":testing", "end", "show-method dyna_method"), str_output) do
+        redirect_pry_io(InputTester.new("def dyna_method", ":testing", "end", "show-method dyna_method", "exit"), str_output) do
           TOPLEVEL_BINDING.pry
         end
 
@@ -65,7 +65,7 @@ describe "Pry::DefaultCommands::Introspection" do
 
       it 'should output a method\'s source for a method defined inside pry, even if exceptions raised before hand' do
         str_output = StringIO.new
-        redirect_pry_io(InputTester.new("bad code", "123", "bad code 2", "1 + 2", "def dyna_method", ":testing", "end", "show-method dyna_method"), str_output) do
+        redirect_pry_io(InputTester.new("bad code", "123", "bad code 2", "1 + 2", "def dyna_method", ":testing", "end", "show-method dyna_method", "exit"), str_output) do
           TOPLEVEL_BINDING.pry
         end
 
@@ -75,7 +75,7 @@ describe "Pry::DefaultCommands::Introspection" do
 
       it 'should output an instance method\'s source for a method defined inside pry' do
         str_output = StringIO.new
-        redirect_pry_io(InputTester.new("class A", "def yo", "end", "end", "show-method A#yo"), str_output) do
+        redirect_pry_io(InputTester.new("class A", "def yo", "end", "end", "show-method A#yo", "exit"), str_output) do
           TOPLEVEL_BINDING.pry
         end
 
@@ -85,7 +85,7 @@ describe "Pry::DefaultCommands::Introspection" do
 
       it 'should output an instance method\'s source for a method defined inside pry using define_method' do
         str_output = StringIO.new
-        redirect_pry_io(InputTester.new("class A", "define_method(:yup) {}", "end", "end", "show-method A#yup"), str_output) do
+        redirect_pry_io(InputTester.new("class A", "define_method(:yup) {}", "end", "end", "show-method A#yup", "exit"), str_output) do
           TOPLEVEL_BINDING.pry
         end
 
