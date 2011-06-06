@@ -28,11 +28,6 @@ class Pry
     # @return [Exception] The last exception.
     attr_accessor :last_exception
 
-    # Get the active Pry instance that manages the active Pry session.
-    # This method should not need to be accessed directly.
-    # @return [Pry] The active Pry instance.
-    attr_accessor :active_instance
-
     # Get/Set the Proc that defines extra Readline completions (on top
     # of the ones defined for IRB).
     # @return [Proc] The Proc that defines extra Readline completions (on top

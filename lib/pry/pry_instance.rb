@@ -85,10 +85,7 @@ class Pry
   # @param [Binding] target The target binding for the session.
   def repl_prologue(target)
     exec_hook :before_session, output, target
-    Pry.active_instance = self
 
-    # Make sure special locals exist
-    set_active_instance(target)
     set_last_result(Pry.last_result, target)
     self.session_target = target
 
@@ -166,7 +163,6 @@ class Pry
     end
 
     @last_result_is_exception = false
-    set_active_instance(target)
     expr = r(target)
 
     Pry.line_buffer.push(*expr.each_line)
@@ -276,13 +272,6 @@ class Pry
     target.eval("_ex_ = ::Pry.last_exception")
   end
 
-  # Set the active instance for a session.
-  # This method should not need to be invoked directly.
-  # @param [Binding] target The binding to set `_ex_` on.
-  def set_active_instance(target)
-    Pry.active_instance = self
-    target.eval("_pry_ = ::Pry.active_instance")
-  end
 
   # @return [Boolean] True if the last result is an exception that was raised,
   #   as opposed to simply an instance of Exception (like the result of
@@ -340,7 +329,6 @@ class Pry
   # @param [Object] target_self The receiver of the Pry session.
   # @return [String] The prompt.
   def select_prompt(first_line, target_self)
-
     if first_line
       Array(prompt).first.call target_self, @binding_stack.size
     else
