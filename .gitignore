@@ -3,6 +3,7 @@ Makefile
 *.o
 *.def
 *.rbc
+*.orig
 doc/
 pkg/
 coverage/
