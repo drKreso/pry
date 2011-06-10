@@ -43,7 +43,7 @@ class Pry
     attributes = [
                    :input, :output, :commands, :print,
                    :exception_handler, :hooks, :custom_completions,
-                   :prompt
+                   :prompt, :memory_size
                  ]
 
     attributes.each do |attribute|
@@ -77,6 +77,17 @@ class Pry
     end
   end
 
+  # @return [Integer] The maximum amount of objects remembered by the inp and
+  #   out arrays. Defaults to 100.
+  def memory_size
+    @output_array.max_size
+  end
+
+  def memory_size=(size)
+    @input_array  = Pry::HistoryArray.new(size)
+    @output_array = Pry::HistoryArray.new(size)
+  end
+
   # Execute the hook `hook_name`, if it is defined.
   # @param [Symbol] hook_name The hook to execute
   # @param [Array] args The arguments to pass to the hook.
@@ -89,8 +100,14 @@ class Pry
   def repl_prologue(target)
     exec_hook :before_session, output, target
 
+    # Make sure special locals exist
+    Thread.current[:inp] = @input_array
+	  Thread.current[:out] = @output_array
+	  target.eval("inp  = Thread.current[:inp]")
+    target.eval("out =  Thread.current[:out]")
+    
+    @input_array << nil # add empty input so inp and out match
     set_last_result(Pry.last_result, target)
-    self.session_target = target
 
     @binding_stack.push target
   end
@@ -139,6 +156,7 @@ class Pry
   # @example
   #   Pry.new.rep(Object.new)
   def rep(target=TOPLEVEL_BINDING)
+    @last_result_is_exception = false
     target = Pry.binding_for(target)
     result = re(target)
 
@@ -165,7 +183,10 @@ class Pry
       Readline.completion_proc = Pry::InputCompleter.build_completion_proc target, instance_eval(&custom_completions)
     end
 
-    @last_result_is_exception = false
+    Thread.current[:inp] = @input_array
+    Thread.current[:out] = @output_array
+    target.eval("inp = Thread.current[:inp]")
+    target.eval("out = Thread.current[:out]")
     expr = r(target)
 
     Pry.line_buffer.push(*expr.each_line)
@@ -174,8 +195,10 @@ class Pry
     exit
   rescue Exception => e
     @last_result_is_exception = true
+    @output_array << e
     set_last_exception(e, target)
   ensure
+    @input_array << expr
     Pry.current_line += expr.each_line.count if expr
   end
 
@@ -235,7 +258,7 @@ class Pry
     # exit session if we receive EOF character
     if !val
       output.puts
-      throw(:breakout, nesting.level)
+      throw :breakout
     end
 
     val
@@ -263,6 +286,7 @@ class Pry
   # @param [Binding] target The binding to set `_` on.
   def set_last_result(result, target)
     Pry.last_result = result
+    @output_array << result
     target.eval("_ = ::Pry.last_result")
   end
 

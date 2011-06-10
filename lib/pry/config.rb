@@ -75,9 +75,9 @@ class Pry
     # sub-options include hist.file, hist.load, and hist.save
     # hist.file is the file to save/load history too, e.g
     # Pry.config.history.file = "~/.pry_history".
-    # hist.load is a boolean that determines whether history will be
+    # hist.should_load is a boolean that determines whether history will be
     # loaded from hist.file at session start.
-    # hist.save is a boolean that determines whether history will be
+    # hist.should_save is a boolean that determines whether history will be
     # saved to hist.file at session end.
     # @return [OpenStruct]
     attr_accessor :history
@@ -88,6 +88,9 @@ class Pry
     # `plugins.strict_loading` (Boolean) which toggles whether referring to a non-existent plugin should raise an exception (defaults to `false`)
     # @return [OpenStruct]
     attr_accessor :plugins
+
+    # @return [Integer] Amount of results that will be stored into _out_
+    attr_accessor :memory_size
   end
 end
 

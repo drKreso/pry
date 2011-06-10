@@ -1,6 +1,8 @@
 # (C) John Mair (banisterfiend) 2011
 # MIT License
 
+require 'pp'
+
 class Pry
   # The default hooks - display messages when beginning and ending Pry sessions.
   DEFAULT_HOOKS = {
@@ -19,7 +21,7 @@ class Pry
   # The default prints
   DEFAULT_PRINT = proc do |output, value|
     if Pry.color
-      output.puts "=> #{CodeRay.scan(Pry.view(value), :ruby).term}"
+      output.puts "=> #{CodeRay.scan(value.pretty_inspect, :ruby).term}"
     else
       output.puts "=> #{Pry.view(value)}"
     end
@@ -79,6 +81,7 @@ if RUBY_PLATFORM =~ /mswin/ || RUBY_PLATFORM =~ /mingw/
 end
 
 require "pry/version"
+require "pry/history_array"
 require "pry/helpers"
 require "pry/command_set"
 require "pry/commands"

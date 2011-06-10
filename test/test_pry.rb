@@ -9,7 +9,7 @@ describe Pry do
 
   describe 'warning emissions' do
     it 'should emit no warnings' do
-      Open4.popen4 'ruby -I lib -r"pry" -W -e "exit"' do |pid, stdin, stdout, stderr|
+      Open4.popen4 'ruby -I lib -rubygems -r"pry" -W -e "exit"' do |pid, stdin, stdout, stderr|
         stderr.read.empty?.should == true
       end
     end
@@ -140,6 +140,67 @@ describe Pry do
           pry_tester = Pry.start(o, :input => input, :output => Pry::NullOutput)
 
           o.instance_variable_get(:@x).should == 10
+        end
+      end
+
+      describe "history arrays" do
+        it 'sets _ to the last result' do
+          res   = []
+          input = InputTester.new *[":foo", "self << _", "42", "self << _", "exit"]
+          pry   = Pry.new(:input => input, :output => Pry::NullOutput)
+          pry.repl(res)
+
+          res.should == [:foo, 42]
+        end
+
+        it 'sets out to an array with the result' do
+          res   = {}
+          input = InputTester.new *[":foo", "42", "self[:res] = out", "exit"]
+          pry   = Pry.new(:input => input, :output => Pry::NullOutput)
+          pry.repl(res)
+
+          res[:res].should.be.kind_of Pry::HistoryArray
+          res[:res][1..2].should == [:foo, 42]
+        end
+
+        it 'sets inp to an array with the entered lines' do
+          res   = {}
+          input = InputTester.new *[":foo", "42", "self[:res] = inp", "exit"]
+          pry   = Pry.new(:input => input, :output => Pry::NullOutput)
+          pry.repl(res)
+
+          res[:res].should.be.kind_of Pry::HistoryArray
+          res[:res][1..2].should == [":foo\n", "42\n"]
+        end
+
+        it 'uses 100 as the size of inp and out' do
+          res   = []
+          input = InputTester.new *["self << out.max_size << inp.max_size", "exit"]
+          pry   = Pry.new(:input => input, :output => Pry::NullOutput)
+          pry.repl(res)
+
+          res.should == [100, 100]
+        end
+
+        it 'can change the size of the history arrays' do
+          res   = []
+          input = InputTester.new *["self << out.max_size << inp.max_size", "exit"]
+          pry   = Pry.new(:input => input, :output => Pry::NullOutput,
+                          :memory_size => 1000)
+          pry.repl(res)
+
+          res.should == [1000, 1000]
+        end
+
+        it 'store exceptions' do
+          res   = []
+          input = InputTester.new *["foo!","self << inp[-1] << out[-1]", "exit"]
+          pry   = Pry.new(:input => input, :output => Pry::NullOutput,
+                          :memory_size => 1000)
+          pry.repl(res)
+
+          res.first.should == "foo!\n"
+          res.last.should.be.kind_of NoMethodError
         end
       end
 

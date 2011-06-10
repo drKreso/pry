@@ -59,7 +59,7 @@ class Pry
     def_delegators :@plugin_manager, :plugins, :load_plugins, :locate_plugins
 
     delegate_accessors :@config, :input, :output, :commands, :prompt, :print, :exception_handler,
-      :hooks, :color, :pager, :editor
+      :hooks, :color, :pager, :editor, :memory_size
   end
 
   # Load the rc files given in the `Pry::RC_FILES` array.
@@ -87,7 +87,7 @@ class Pry
       # multiple times per each new session (i.e in debugging)
       load_rc if Pry.config.should_load_rc
       load_plugins if Pry.config.plugins.enabled
-      load_history if Pry.config.history.load
+      load_history if Pry.config.history.should_load
 
       @initial_session = false
     end
@@ -95,12 +95,12 @@ class Pry
     new(options).repl(target)
   end
 
-  # A custom version of `Kernel#inspect`.
+  # A custom version of `Kernel#pretty_inspect`.
   # This method should not need to be accessed directly.
   # @param obj The object to view.
   # @return [String] The string representation of `obj`.
   def self.view(obj)
-    obj.inspect
+    obj.pretty_inspect
 
   rescue NoMethodError
     "unknown"
@@ -112,8 +112,8 @@ class Pry
   # @param max_size The maximum number of chars before clipping occurs.
   # @return [String] The string representation of `obj`.
   def self.view_clip(obj, max_size=60)
-    if Pry.view(obj).size < max_size
-      Pry.view(obj)
+    if obj.inspect.size < max_size
+      obj.inspect
     else
       "#<#{obj.class}:%#x>" % (obj.object_id << 1)
     end
@@ -186,9 +186,11 @@ class Pry
     config.plugins.strict_loading = true
 
     config.history ||= OpenStruct.new
-    config.history.save = true
-    config.history.load = true
+    config.history.should_save = true
+    config.history.should_load = true
     config.history.file = File.expand_path("~/.pry_history")
+
+    config.memory_size = 100
   end
 
   # Set all the configurable options back to their default values
