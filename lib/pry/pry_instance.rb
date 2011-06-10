@@ -396,35 +396,25 @@ class Pry
     prompt_stack.size > 1 ? prompt_stack.pop : prompt
   end
 
-  if RUBY_VERSION =~ /1.9/ && RUBY_ENGINE == "ruby"
-    require 'ripper'
-
-    # Determine if a string of code is a valid Ruby expression.
-    # Ruby 1.9 uses Ripper, Ruby 1.8 uses RubyParser.
-    # @param [String] code The code to validate.
-    # @return [Boolean] Whether or not the code is a valid Ruby expression.
-    # @example
-    #   valid_expression?("class Hello") #=> false
-    #   valid_expression?("class Hello; end") #=> true
-    def valid_expression?(code)
+  # Ask if a string of code is a valid Ruby expression.
+  #
+  # @param  [String] code The code to validate.
+  # @return [Boolean] Returns true if the code is a valid Ruby expression. 
+  # @example
+  #   valid_expression?("class Hello") #=> false
+  #   valid_expression?("class Hello; end") #=> true
+  def valid_expression?(code)
+    if RUBY_VERSION =~ /^1\.9\.\d{1}$/ && RUBY_ENGINE == 'ruby'
+      require 'ripper' unless defined?(Ripper)
       !!Ripper::SexpBuilder.new(code).parse
-    end
-
-  else
-    require 'ruby_parser'
-
-    # Determine if a string of code is a valid Ruby expression.
-    # Ruby 1.9 uses Ripper, Ruby 1.8 uses RubyParser.
-    # @param [String] code The code to validate.
-    # @return [Boolean] Whether or not the code is a valid Ruby expression.
-    # @example
-    #   valid_expression?("class Hello") #=> false
-    #   valid_expression?("class Hello; end") #=> true
-    def valid_expression?(code)
-      RubyParser.new.parse(code)
-      true
-    rescue Racc::ParseError, SyntaxError
-      false
+    else
+      begin
+        require 'ruby_parser' unless defined?(RubyParser)
+        RubyParser.new.parse(code)
+        true
+      rescue Racc::ParseError, SyntaxError
+        false
+      end
     end
   end
 end
