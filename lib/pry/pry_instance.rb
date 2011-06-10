@@ -363,12 +363,6 @@ class Pry
     end
   end
 
-  # the array that the prompt stack is stored in
-  def prompt_stack
-    @prompt_stack ||= Array.new
-  end
-  private :prompt_stack
-
   # Pushes the current prompt onto a stack that it can be restored from later.
   # Use this if you wish to temporarily change the prompt.
   # @param [Array<Proc>] new_prompt
@@ -417,4 +411,11 @@ class Pry
       end
     end
   end
+
+  private
+
+  def prompt_stack
+    @prompt_stack ||= Array.new
+  end
+
 end
