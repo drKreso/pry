@@ -9,6 +9,10 @@ class Pry
   attr_accessor :exception_handler
   attr_accessor :hooks
   attr_accessor :custom_completions
+  
+  # @return [Object]
+  #   The value returned by the last evaluated expression.
+  attr_reader :value
 
   # @return [Array<Binding>]
   #   Returns an Array of Binding objects being used by a `Pry` instance.  
@@ -97,32 +101,19 @@ class Pry
 
   # Initialize the repl session.
   # @param [Binding] target The target binding for the session.
-  def repl_prologue(target)
-    exec_hook :before_session, output, target
-
-    # Make sure special locals exist
-    Thread.current[:inp] = @input_array
-	  Thread.current[:out] = @output_array
-	  target.eval("inp  = Thread.current[:inp]")
-    target.eval("out =  Thread.current[:out]")
-    
-    @input_array << nil # add empty input so inp and out match
-    set_last_result(Pry.last_result, target)
-
-    @binding_stack.push target
+  def prologue(target)
+    define_locals! target
+    @binding_stack.push target unless @binding_stack.size >= 1
+    @exception_raised = false
   end
 
   # Clean-up after the repl session.
   # @param  [Binding] target The target binding for the session.
   # @return [void]
-  def repl_epilogue(target)
-    exec_hook :after_session, output, target
-    
-    if Pry.config.history.save
-      save_history
-    end
-
-    @binding_stack = []
+  def epilogue(target)
+    define_locals! target
+    exception_raised? ? (@output_array << @exception) : (@output_array << @value)
+    save_history
   end
 
   # Start a read-eval-print-loop.
@@ -135,19 +126,18 @@ class Pry
   #   Pry.new.repl(Object.new)
   def repl(target=TOPLEVEL_BINDING)
     target = Pry.binding_for target
-    target_self = target.eval 'self'
 
-    repl_prologue target
-
+    exec_hook :before_session, output, target
+    
     status = catch :breakout do
       loop do
-        rep @binding_stack.last
+        rep @binding_stack.last || target
       end
     end
+    
+    exec_hook :after_session, output, target
 
-    repl_epilogue target
-
-    status || target_self
+    status || target.eval("self") 
   end
 
   # Perform a read-eval-print.
@@ -156,9 +146,11 @@ class Pry
   # @example
   #   Pry.new.rep(Object.new)
   def rep(target=TOPLEVEL_BINDING)
-    @last_result_is_exception = false
     target = Pry.binding_for(target)
-    result = re(target)
+    
+    prologue target
+    result = re target
+    epilogue target
 
     show_result(result) if should_print?
   end
@@ -172,10 +164,6 @@ class Pry
   # @example
   #   Pry.new.re(Object.new)
   def re(target=TOPLEVEL_BINDING)
-    if @binding_stack.empty?
-      @binding_stack.push target
-    end
-
     target = Pry.binding_for(target)
 
     if input == Readline
@@ -183,20 +171,16 @@ class Pry
       Readline.completion_proc = Pry::InputCompleter.build_completion_proc target, instance_eval(&custom_completions)
     end
 
-    Thread.current[:inp] = @input_array
-    Thread.current[:out] = @output_array
-    target.eval("inp = Thread.current[:inp]")
-    target.eval("out = Thread.current[:out]")
     expr = r(target)
 
     Pry.line_buffer.push(*expr.each_line)
-    set_last_result(target.eval(expr, Pry.eval_path, Pry.current_line), target)
+    ret = target.eval expr, Pry.eval_path, Pry.current_line 
+    @value = ret
   rescue SystemExit => e
     exit
   rescue Exception => e
-    @last_result_is_exception = true
-    @output_array << e
-    set_last_exception(e, target)
+    @exception_raised = true
+    @exception = e
   ensure
     @input_array << expr
     Pry.current_line += expr.each_line.count if expr
@@ -231,7 +215,7 @@ class Pry
 
   # Output the result or pass to an exception handler (if result is an exception).
   def show_result(result)
-    if last_result_is_exception?
+    if exception_raised?
       exception_handler.call output, result
     else
       print.call output, result
@@ -303,8 +287,8 @@ class Pry
   # @return [Boolean] True if the last result is an exception that was raised,
   #   as opposed to simply an instance of Exception (like the result of
   #   Exception.new)
-  def last_result_is_exception?
-    @last_result_is_exception
+  def exception_raised? 
+    @exception_raised
   end
 
   # Returns the next line of input to be used by the pry instance.
@@ -338,14 +322,16 @@ class Pry
   # is an exception regardless of suppression.
   # @return [Boolean] Whether the print proc should be invoked.
   def should_print?
-    !@suppress_output || last_result_is_exception?
+    !@suppress_output || exception_raised?
   end
 
   # Save readline history to a file.
   def save_history
-    history_file = File.expand_path(Pry.config.history.file)
-    File.open(history_file, 'w') do |f|
-      f.write Readline::HISTORY.to_a.join("\n")
+    if Pry.config.history.save
+      history_file = File.expand_path(Pry.config.history.file)
+      File.open(history_file, 'w') do |f|
+        f.write Readline::HISTORY.to_a.join("\n")
+      end
     end
   end
 
@@ -416,6 +402,23 @@ class Pry
 
   def prompt_stack
     @prompt_stack ||= Array.new
+  end
+
+  def define_locals! target
+    locals_hash = 
+    { 
+      'inp'   => @input_array ,
+      'out'   => @output_array,
+      '_'     => @value       ,
+      "_ex_"  => @exception   ,
+      '_pry_' => self         
+    }
+
+    locals_hash.each_pair do |local, value|
+      Thread.current[:'pry-magic_local'] = value
+      target.eval "#{local} = Thread.current[:'pry-magic_local']"
+      Thread.current[:'pry-magic_local'] = nil
+    end
   end
 
 end

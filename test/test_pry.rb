@@ -160,7 +160,7 @@ describe Pry do
           pry.repl(res)
 
           res[:res].should.be.kind_of Pry::HistoryArray
-          res[:res][1..2].should == [:foo, 42]
+          res[:res][0..1].should == [:foo, 42]
         end
 
         it 'sets inp to an array with the entered lines' do
@@ -170,7 +170,7 @@ describe Pry do
           pry.repl(res)
 
           res[:res].should.be.kind_of Pry::HistoryArray
-          res[:res][1..2].should == [":foo\n", "42\n"]
+          res[:res][0..1].should == [":foo\n", "42\n"]
         end
 
         it 'uses 100 as the size of inp and out' do
@@ -194,7 +194,7 @@ describe Pry do
 
         it 'store exceptions' do
           res   = []
-          input = InputTester.new *["foo!","self << inp[-1] << out[-1]", "exit"]
+          input = InputTester.new *["foo!","self << inp[-1] << out[0]", "exit"]
           pry   = Pry.new(:input => input, :output => Pry::NullOutput,
                           :memory_size => 1000)
           pry.repl(res)

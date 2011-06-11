@@ -7,13 +7,11 @@ describe "Pry::DefaultCommands::Context" do
     end
 
     it 'should cd into simple input' do
-      b = Pry.binding_for(Object.new)
-      b.eval("x = :mon_ouie")
-
-      redirect_pry_io(InputTester.new("cd x", "$obj = self", "exit"), StringIO.new) do
-        b.pry
-      end
-
+      b = Pry.binding_for Object.new
+      b.eval "x = :mon_ouie"
+      input = InputTester.new 'cd x', '$obj = self', 'exit'
+      redirect_pry_io(input, StringIO.new) { b.pry }
+      
       $obj.should == :mon_ouie
     end
 
@@ -21,7 +19,7 @@ describe "Pry::DefaultCommands::Context" do
       b = Pry.binding_for(:outer)
       b.eval("x = :inner")
 
-      redirect_pry_io(InputTester.new("cd x", "$inner = self;", "cd ..", "$outer = self", "exit"), StringIO.new) do
+      redirect_pry_io(InputTester.new("cd x", "$inner = self", "cd ..", "$outer = self", "exit"), StringIO.new) do
         b.pry
       end
       $inner.should == :inner
@@ -32,7 +30,7 @@ describe "Pry::DefaultCommands::Context" do
       b = Pry.binding_for(:outer)
       b.eval("x = :inner")
 
-      redirect_pry_io(InputTester.new("cd x", "$inner = self;", "cd 5", "$five = self", "cd /", "$outer = self", "exit"), StringIO.new) do
+      redirect_pry_io(InputTester.new("cd x", "$inner = self", "cd 5", "$five = self", "cd /", "$outer = self", "exit"), StringIO.new) do
         b.pry
       end
       $inner.should == :inner
