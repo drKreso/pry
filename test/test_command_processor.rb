@@ -22,8 +22,10 @@ describe "Pry::CommandProcessor" do
 
     a = "test-command"
 
-    # not passing in a binding so 'a' shoudn't exist and should cause error
-    lambda { @command_processor.valid_command? '#{a}' }.should.raise NameError
+    # not passing in a binding so 'a' shouldn't exist and no command
+    # will be matched
+    valid = @command_processor.valid_command?('#{a}')
+    valid.should == false
 
     # passing in the optional binding (against which interpolation is performed)
     valid = @command_processor.valid_command? '#{a}', binding
@@ -190,4 +192,14 @@ describe "Pry::CommandProcessor" do
 
     command.should == nil
   end
+
+
+  it 'commands that have :interpolate => false should not be interpolated (interpolate_string should *not* be called)' do
+    @pry.commands.command("boast", "", :interpolate => false) {}
+
+    # remember to use '' instead of "" when testing interpolation or
+    # you'll cause yourself incredible confusion
+    lambda { @command_processor.command_matched('boast #{c}', binding) }.should.not.raise NameError
+  end
+
 end

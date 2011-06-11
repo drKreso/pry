@@ -40,6 +40,17 @@ describe Pry do
         @excep.is_a?(NameError).should == true
       end
 
+      if defined?(BasicObject)
+        it 'should be able to operate inside the BasicObject class' do
+          $obj = nil
+          redirect_pry_io(InputTester.new(":foo", "$obj = _", "exit"), StringIO.new) do
+            BasicObject.pry
+          end
+          $obj.should == :foo
+          $obj = nil
+        end
+      end
+
       it 'should set an ivar on an object' do
         input_string = "@x = 10"
         input = InputTester.new(input_string)
@@ -469,6 +480,21 @@ describe Pry do
             $test_interpolation = nil
           end
 
+          it 'should NOT try to interpolate pure ruby code (no commands) ' do
+            str_output = StringIO.new
+            Pry.new(:input => StringIO.new('puts \'#{aggy}\''), :output => str_output).rep
+            str_output.string.should.not =~ /NameError/
+
+            Pry.new(:input => StringIO.new('puts #{aggy}'), :output => str_output).rep
+            str_output.string.should.not =~ /NameError/
+
+            $test_interpolation = "blah"
+            Pry.new(:input => StringIO.new('puts \'#{$test_interpolation}\''), :output => str_output).rep
+
+            str_output.string.should.not =~ /blah/
+            $test_interpolation = nil
+          end
+
           it 'should create a command with a space in its name' do
             set = Pry::CommandSet.new do
               command "hello baby", "" do
@@ -477,7 +503,7 @@ describe Pry do
             end
 
             str_output = StringIO.new
-            redirect_pry_io(InputTester.new("hello baby", "exit-all"), str_output) do
+            redirect_pry_io(InputTester.new("hello baby", "exit"), str_output) do
               Pry.new(:commands => set).rep
             end
 
