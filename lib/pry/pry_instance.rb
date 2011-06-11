@@ -264,26 +264,6 @@ class Pry
     end
   end
 
-  # Set the last result of an eval.
-  # This method should not need to be invoked directly.
-  # @param [Object] result The result.
-  # @param [Binding] target The binding to set `_` on.
-  def set_last_result(result, target)
-    Pry.last_result = result
-    @output_array << result
-    target.eval("_ = ::Pry.last_result")
-  end
-
-  # Set the last exception for a session.
-  # This method should not need to be invoked directly.
-  # @param [Exception] ex The exception.
-  # @param [Binding] target The binding to set `_ex_` on.
-  def set_last_exception(ex, target)
-    Pry.last_exception = ex
-    target.eval("_ex_ = ::Pry.last_exception")
-  end
-
-
   # @return [Boolean] True if the last result is an exception that was raised,
   #   as opposed to simply an instance of Exception (like the result of
   #   Exception.new)
