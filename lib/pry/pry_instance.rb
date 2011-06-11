@@ -396,7 +396,7 @@ class Pry
 
     locals_hash.each_pair do |local, value|
       Thread.current[:'pry-magic_local'] = value
-      target.eval "#{local} = Thread.current[:'pry-magic_local']"
+      target.eval "#{local} = ::Thread.current[:'pry-magic_local']"
       Thread.current[:'pry-magic_local'] = nil
     end
   end
