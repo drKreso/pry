@@ -219,10 +219,20 @@ class Pry
 
     set_active_instance(target)
 
-    code = r(target)
+    # loop until the user has typed a complete expression or invalid input.
+    begin
 
-    res = set_last_result(target.eval(code, Pry.eval_path, Pry.current_line), target)
-    res
+      code = r(target, code || "")
+      result = target.eval(code, Pry.eval_path, Pry.current_line);
+
+    rescue SyntaxError => e
+      retry if incomplete_user_input_exception?(e, caller)
+      raise
+    end
+
+    set_last_result(result, target)
+    result
+
   rescue SystemExit => e
     exit
   rescue Exception => e
@@ -231,10 +241,8 @@ class Pry
     update_input_history(code)
   end
 
-  # Perform a read.
+  # Read a single line and append it to the string so far.
   # If no parameter is given, default to top-level (main).
-  # This is a multi-line read; so the read continues until a valid
-  # Ruby expression is received.
   # Pry commands are also accepted here and operate on the target.
   # @param [Object, Binding] target The receiver of the read.
   # @param [String] eval_string Optionally Prime `eval_string` with a start value.
@@ -246,12 +254,8 @@ class Pry
     @suppress_output = false
 
     val = ""
-    loop do
-      val = retrieve_line(eval_string, target)
-      process_line(val, eval_string, target)
-
-      break if valid_expression?(eval_string)
-    end
+    val = retrieve_line(eval_string, target)
+    process_line(val, eval_string, target)
 
     @suppress_output = true if eval_string =~ /;\Z/ || null_input?(val)
 
@@ -463,35 +467,31 @@ class Pry
     prompt_stack.size > 1 ? prompt_stack.pop : prompt
   end
 
-  if RUBY_VERSION =~ /1.9/ && RUBY_ENGINE == "ruby"
-    require 'ripper'
+  # Check whether the exception indicates that the user should input more.
+  #
+  # The first part of the check verifies that the exception was raised from
+  # the input to the eval, taking care not to be confused if the input contains
+  # an eval() with incomplete syntax.
+  #
+  # @param [SyntaxError] the exception object that was raised.
+  # @param [Array<String>] The stack frame of the function that executed eval.
+  # @return [Boolean]
+  #
+  def incomplete_user_input_exception?(ex, stack)
 
-    # Determine if a string of code is a valid Ruby expression.
-    # Ruby 1.9 uses Ripper, Ruby 1.8 uses RubyParser.
-    # @param [String] code The code to validate.
-    # @return [Boolean] Whether or not the code is a valid Ruby expression.
-    # @example
-    #   valid_expression?("class Hello") #=> false
-    #   valid_expression?("class Hello; end") #=> true
-    def valid_expression?(code)
-      !!Ripper::SexpBuilder.new(code).parse
-    end
+    # deliberate use of ^ instead of \A, error messages can be two lines long.
+    from_pry_input = /^#{Regexp.escape(Pry.eval_path)}/
 
-  else
-    require 'ruby_parser'
+    return false unless SyntaxError === ex && ex.message =~ from_pry_input
 
-    # Determine if a string of code is a valid Ruby expression.
-    # Ruby 1.9 uses Ripper, Ruby 1.8 uses RubyParser.
-    # @param [String] code The code to validate.
-    # @return [Boolean] Whether or not the code is a valid Ruby expression.
-    # @example
-    #   valid_expression?("class Hello") #=> false
-    #   valid_expression?("class Hello; end") #=> true
-    def valid_expression?(code)
-      RubyParser.new.parse(code)
-      true
-    rescue Racc::ParseError, SyntaxError
-      false
+    case ex.message
+    # end-of file in matz-ruby, jruby, and iron ruby. "quoted string" is also iron ruby, string and regexp ae shared.
+    when /unexpected (\$end|end-of-file|END_OF_FILE)/, /unterminated (quoted string|string|regexp) meets end of file/
+
+      backtrace = ex.backtrace
+      backtrace = backtrace.drop(1) if RUBY_VERSION =~ /1.8/ && RUBY_PLATFORM !~ /java/
+
+      return backtrace.grep(from_pry_input).count <= stack.grep(from_pry_input).count
     end
   end
 end
